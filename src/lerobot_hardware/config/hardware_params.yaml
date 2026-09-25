@@ -1,0 +1,48 @@
+# Parameters for the two lerobot_hardware nodes, loaded by
+# lerobot_hardware/launch/so101_physical.launch.py. Each top-level key must match that
+# node's runtime name exactly (the `name=` given to it in the launch file) or ROS 2 will
+# silently ignore this block for that node and it will fall back to the in-code defaults.
+so101_hardware_driver:
+  ros__parameters:
+    # Device path for the arm's USB-serial adapter. `ls /dev/serial/by-id/` gives a stable
+    # alternative to /dev/ttyACM0 if you have more than one serial device attached.
+    serial_port: "/dev/ttyACM0"
+    baud_rate: 1000000
+    # How often /joint_states is published; independent of trajectory execution rate.
+    state_publish_rate_hz: 30.0
+    # true = never touch the serial port; read_position_ticks() instead echoes back the
+    # last commanded position. Lets you exercise the whole pose_commander_node ->
+    # hardware_driver_node -> "servo" round trip with no arm attached before wiring one up.
+    dry_run: false
+    joint_names: ["1", "2", "3", "4", "5", "6"]
+    # Feetech bus id wired to each joint above. Defaults assume id N = joint "N", i.e. servo
+    # id 1 on the bus is joint "1" (the base yaw joint), etc. - change this if you wired the
+    # servos in some other id order.
+    servo_ids: [1, 2, 3, 4, 5, 6]
+    # Flip an entry to -1 if that servo's positive direction is mounted opposite the URDF axis.
+    joint_directions: [1, 1, 1, 1, 1, 1]
+    # Radians added before converting to ticks; calibrate so 0 rad matches the URDF zero pose.
+    # Bring up procedure: with dry_run:=false and torque disabled, manually pose the real arm
+    # to match the URDF's zero pose (all joints at 0 rad, as in so101.srdf's "home" group
+    # state), read back each servo's raw ticks, and solve offset_rad from
+    # ticks_to_radians(ticks, direction, 0) for that joint.
+    joint_offsets_rad: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    # Copied from lerobot_description/urdf/so101_ros2_control.xacro joint limits, so
+    # trajectories are clamped to the same range MoveIt itself plans within.
+    joint_min_rad: [-1.91986, -1.74533, -1.74533, -1.65806, -2.79253, -0.174533]
+    joint_max_rad: [1.91986, 1.74533, 1.5708, 1.65806, 2.79253, 1.74533]
+
+pose_commander_node:
+  ros__parameters:
+    # Must match a <group> name in lerobot_moveit/config/so101.srdf.
+    planning_group: "arm"
+    # Tip link of that group's kinematic chain - the link an incoming pose_matrix targets.
+    pose_link: "gripper"
+    # Reference frame incoming pose_matrix goals are expressed in.
+    base_frame: "base"
+    planning_time_s: 5.0
+    # Fraction of each joint's max velocity/acceleration (from
+    # lerobot_moveit/config/joint_limits.yaml) MoveIt is allowed to plan at. Keep well under
+    # 1.0 on real hardware until you trust your joint_offsets_rad/joint_directions calibration.
+    max_velocity_scaling: 0.2
+    max_acceleration_scaling: 0.2

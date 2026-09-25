@@ -1,0 +1,44 @@
+# OMPL planning-pipeline configuration for the "so101" MoveIt config.
+#
+# This file was previously missing from this package, even though moveit_controllers.yaml,
+# kinematics.yaml, etc. were all present. MoveItConfigsBuilder.to_moveit_configs() (used by
+# so101_moveit.launch.py and by lerobot_hardware's pose_commander_node.py) auto-loads a file
+# with this exact name from this package's config/ directory when .planning_pipelines() asks
+# for the "ompl" pipeline. Without it, "arm"/"gripper" have no planner_configs at all, so a
+# pose or joint goal has no OMPL planner to actually run - plan() fails (or, in the RViz
+# MotionPlanning panel, "ompl" has no algorithms listed to pick from).
+#
+# AddTimeOptimalParameterization (below) is what turns a purely geometric OMPL path into a
+# smooth, time-parameterized joint trajectory (velocities/accelerations respecting
+# joint_limits.yaml, waypoints spaced in time) - this is the "smoothly moves" part of
+# lerobot_hardware's task-space commander: hardware_driver_node just has to play the
+# resulting waypoints back on schedule, no extra interpolation needed on its side.
+planning_plugins:
+  - ompl_interface/OMPLPlanner
+request_adapters: >-
+    default_planner_request_adapters/AddTimeOptimalParameterization
+    default_planner_request_adapters/ResolveConstraintFrames
+    default_planner_request_adapters/FixWorkspaceBounds
+    default_planner_request_adapters/FixStartStateBounds
+    default_planner_request_adapters/FixStartStateCollision
+    default_planner_request_adapters/FixStartStatePathConstraints
+start_state_max_bounds_error: 0.1
+
+# Group names below must match <group name="..."> in so101.srdf.
+arm:
+  planner_configs:
+    - RRTConnectkConfigDefault
+  # Speeds up OMPL's internal collision-checking projection for this 5-DOF chain; picking
+  # two representative joints is the standard MoveIt-setup-assistant default, not something
+  # specific to this arm.
+  projection_evaluator: joints(1,2)
+  longest_valid_segment_fraction: 0.005
+
+gripper:
+  planner_configs:
+    - RRTConnectkConfigDefault
+
+# Referenced by name from both groups' planner_configs above.
+RRTConnectkConfigDefault:
+  type: geometric::RRTConnect
+  range: 0.0

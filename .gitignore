@@ -1,10 +1,28 @@
 
-# folders
+# editors
 .vscode/
+
+# colcon workspace output - colcon always builds out-of-source into these top-level
+# directories, so a plain `colcon build` never needs anything below this line ignored.
 build/
 install/
 log/
 
+# CMake - only matters if a package (e.g. lerobot_hardware_interfaces, lerobot_moveit,
+# lerobot_description, lerobot_controller) is ever configured in-source by mistake, and
+# for compile_commands.json, which some clangd/IDE setups symlink from build/<pkg>/ back
+# into the package's own source directory for editor tooling.
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# Python - ament_python packages (lerobot_hardware) are built with setuptools, which can
+# leave egg-info and pytest caches inside src/ itself, not just under build/.
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
 *~
-*__pycache__/
 *.log

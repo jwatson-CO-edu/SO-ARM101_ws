@@ -1,0 +1,19 @@
+# Command the SO-ARM101 end effector ("gripper" link) to a target pose in the arm's
+# "base" frame (see so101.srdf group "arm" and pose_commander_node's base_frame parameter).
+#
+# pose_matrix is a 4x4 homogeneous transform flattened row-major, i.e.
+#   [R00, R01, R02, tx,
+#    R10, R11, R12, ty,
+#    R20, R21, R22, tz,
+#      0,   0,   0,  1]
+# flattened as [R00, R01, R02, tx, R10, R11, R12, ty, R20, R21, R22, tz, 0, 0, 0, 1].
+# See lerobot_hardware/matrix_utils.py for the validation/conversion this feeds into.
+float64[16] pose_matrix
+---
+# Result: whether IK + planning + execution all succeeded end to end.
+bool success
+string message
+---
+# Feedback: coarse progress marker - "planning" while MoveIt is solving IK and planning
+# the trajectory, "executing" once a valid plan is being run on the real servos.
+string phase

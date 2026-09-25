@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>lerobot_hardware</name>
+  <version>0.0.0</version>
+  <description>
+    Task-space command node (MoveIt 2 IK + motion planning) and physical joint
+    driver node for controlling the real LeRobot SO-ARM101 arm.
+  </description>
+  <maintainer email="james.watson-2@colorado.edu">james</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <!-- rclpy nodes, actions, and messages used directly by pose_commander_node.py /
+       hardware_driver_node.py -->
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
+  <exec_depend>lerobot_hardware_interfaces</exec_depend>
+
+  <!-- robot model / MoveIt config this package builds its MoveItPy instance from -->
+  <exec_depend>lerobot_description</exec_depend>
+  <exec_depend>lerobot_moveit</exec_depend>
+  <exec_depend>moveit_py</exec_depend>
+  <exec_depend>moveit_configs_utils</exec_depend>
+
+  <!-- so101_physical.launch.py brings these up directly (see that launch file) -->
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <!-- serial bus driver + math -->
+  <exec_depend>python3-serial</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

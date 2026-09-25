@@ -1,0 +1,35 @@
+# Extra parameters MoveItPy needs beyond what MoveItConfigsBuilder.to_dict() provides,
+# following the moveit2_tutorials motion_planning_python_api pattern. These are merged into
+# the config dict pose_commander_node.py builds for its own embedded MoveItPy instance - they
+# are not read from disk by any launch file, and have nothing to do with move_group.
+
+# planning_scene_monitor_options tells MoveItPy's internal planning scene monitor which
+# topic to watch for robot state (/joint_states, published by hardware_driver_node) and
+# which topics to use for its own scene-diff bookkeeping. The "/moveit_py/..." topic names
+# just need to not collide with the separate move_group node's own planning scene monitor
+# topics (move_group's default names, unprefixed) since both processes run at once.
+planning_scene_monitor_options:
+  name: "planning_scene_monitor"
+  robot_description: "robot_description"
+  joint_state_topic: "/joint_states"
+  attached_collision_object_topic: "/moveit_py/planning_scene_monitor"
+  publish_planning_scene_topic: "/moveit_py/publish_planning_scene"
+  monitored_planning_scene_topic: "/moveit_py/monitored_planning_scene"
+  wait_for_initial_state_timeout: 10.0
+
+# Which planning pipeline(s) MoveItPy loads; must be one of the pipelines actually
+# configured (here, just "ompl" - see lerobot_moveit/config/ompl_planning.yaml).
+planning_pipelines:
+  pipeline_names: ["ompl"]
+
+# Defaults for every plan() call; pose_commander_node.py overrides planning_time,
+# max_velocity_scaling_factor and max_acceleration_scaling_factor at runtime from its own
+# ROS parameters (planning_time_s / max_velocity_scaling / max_acceleration_scaling in
+# hardware_params.yaml), so only planner_id and planning_attempts actually come from here.
+plan_request_params:
+  planning_pipeline: "ompl"
+  planner_id: "RRTConnectkConfigDefault"
+  planning_time: 5.0
+  planning_attempts: 5
+  max_velocity_scaling_factor: 0.2
+  max_acceleration_scaling_factor: 0.2

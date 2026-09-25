@@ -9,7 +9,7 @@ LeRobot SO-ARM101 integrated into ROS 2 Jazzy.
 - ✅ Gazebo Harmonic simulation
 - ✅ ROS 2 Control integration
 - ✅ MoveIt 2 motion planning
-- 📝 **TODO:** ROS 2 control interface for the real HW
+- ✅ Task-space control of the physical arm (MoveIt 2 IK/planning + a Feetech STS3215 serial driver, see `lerobot_hardware`)
 ---
 ## Installation
 
@@ -82,6 +82,34 @@ https://github.com/user-attachments/assets/f95e9fd7-272a-46a1-8b34-0cb6c3f36da8
 <!-- Add your video link here -->
 
 https://github.com/user-attachments/assets/5511c329-faad-4020-9527-4034f54a027a
+
+---
+
+## Physical Hardware
+
+**Summary:** Command the real SO-ARM101 in task space. `pose_commander_node` takes a 4x4
+homogeneous transform, validates it, and runs it through MoveIt 2 (moveit_py) for IK and
+motion planning; `hardware_driver_node` executes the resulting trajectory on the real
+Feetech STS3215 bus servos and publishes `/joint_states` back to MoveIt.
+
+**Prerequisites:**
+- `pip install pyserial` (or the `python3-serial` apt package)
+- Wire the arm's serial bus adapter and note its device path (e.g. `/dev/ttyACM0`)
+- Calibrate `src/lerobot_hardware/config/hardware_params.yaml`: `serial_port`, `servo_ids`,
+  `joint_directions`, and `joint_offsets_rad` so that 0 rad matches each servo's mounted
+  zero position
+
+**Command:**  
+`ros2 launch lerobot_hardware so101_physical.launch.py`
+
+**Sending a pose command** (row-major 4x4 identity transform, i.e. no rotation, at
+x=0.2 y=0.0 z=0.2 m in the `base` frame):
+```bash
+ros2 action send_goal /move_to_pose lerobot_hardware_interfaces/action/MoveToPose \
+  "{pose_matrix: [1,0,0,0.2, 0,1,0,0.0, 0,0,1,0.2, 0,0,0,1]}"
+```
+
+- 📝 **TODO:** record a demo video
 
 ---
 
