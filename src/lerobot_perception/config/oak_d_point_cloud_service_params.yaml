@@ -1,0 +1,18 @@
+# Parameters for lerobot_perception's color_point_cloud_service node.
+#
+# rgb_topic/depth_topic/camera_info_topic below are depthai_ros_driver's default topic
+# names as of the version this was written against - they have changed across driver
+# releases in the past. Once the driver is running, confirm with:
+#   ros2 topic list | grep oak
+# and update these if your installed version differs. depth_topic in particular must be
+# depth ALIGNED to the color camera (same resolution, same optical frame) - this node
+# requires the rgb and depth images to be exactly the same size (see buildCloud() in
+# color_point_cloud_service_node.cpp) and will return a service error otherwise.
+color_point_cloud_service:
+  ros__parameters:
+    rgb_topic: "/oak/rgb/image_raw"
+    depth_topic: "/oak/stereo/image_raw"
+    camera_info_topic: "/oak/rgb/camera_info"
+    # message_filters ApproximateTime queue size (in messages, not seconds) - how many
+    # recent messages per topic it holds while looking for a matching triplet.
+    sync_queue_size: 10

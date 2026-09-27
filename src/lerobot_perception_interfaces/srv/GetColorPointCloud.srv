@@ -1,0 +1,33 @@
+# Request: how to build/process the color point cloud returned in the response. The
+# cloud is always expressed in the camera's own optical frame (see
+# lerobot_perception/color_point_cloud_service_node.cpp) - it never transforms into any
+# other frame; do that downstream with tf2 if you need it in, e.g., a world/base frame.
+
+# Voxel-grid downsampling (pcl::VoxelGrid), applied before segmentation if both are
+# requested. voxel_leaf_size_m is the edge length, in meters, of each cubic grid cell.
+bool downsample false
+float64 voxel_leaf_size_m 0.01
+
+# Color-based region growing segmentation (pcl::RegionGrowingRGB). When true, the
+# returned cloud is re-colored per PCL's own convention: one solid color per detected
+# cluster (points that don't join any cluster large enough to pass min_cluster_size are
+# left black), NOT the original camera colors.
+bool segment false
+
+# Neighbor search radius, in the same units as the cloud (meters). Two points farther
+# apart than this are never merged into the same region, however similar their color.
+float64 distance_threshold 0.02
+# Max per-channel color difference (0-255 scale) between a point and a neighbor for the
+# neighbor to be merged into the same region.
+float64 point_color_threshold 6.0
+# Max per-channel color difference (0-255 scale) between two already-grown regions for
+# them to be merged into one.
+float64 region_color_threshold 5.0
+# Clusters smaller than this (in points, after downsampling if both are requested) are
+# discarded (their points are left unclustered / colored black in the output).
+int32 min_cluster_size 600
+---
+# Response
+bool success
+string message
+sensor_msgs/PointCloud2 cloud

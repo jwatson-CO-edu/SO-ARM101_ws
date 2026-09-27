@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>lerobot_perception</name>
+  <version>0.0.0</version>
+  <description>
+    Color point cloud service for the OAK-D Lite RGB-D camera: on request, builds an XYZRGB
+    cloud in the camera's own optical frame, with optional voxel-grid downsampling and PCL
+    Region Growing RGB segmentation.
+  </description>
+  <maintainer email="james.watson-2@colorado.edu">james</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>message_filters</depend>
+  <depend>cv_bridge</depend>
+  <depend>pcl_conversions</depend>
+  <depend>lerobot_perception_interfaces</depend>
+  <!-- rosdep key for the system PCL development libraries CMakeLists.txt's
+       find_package(PCL ...) needs. -->
+  <depend>libpcl-all-dev</depend>
+
+  <!-- Brought up by launch/oak_d_point_cloud_service.launch.py to drive the camera itself;
+       not compiled against, just launched. See that launch file's docstring for the
+       version-compatibility caveats around its topic/parameter names. -->
+  <exec_depend>depthai_ros_driver</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

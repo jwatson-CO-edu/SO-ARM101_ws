@@ -10,6 +10,7 @@ LeRobot SO-ARM101 integrated into ROS 2 Jazzy.
 - ✅ ROS 2 Control integration
 - ✅ MoveIt 2 motion planning
 - ✅ Task-space control of the physical arm (MoveIt 2 IK/planning + a Feetech STS3215 serial driver, see `lerobot_hardware`)
+- ✅ Color point cloud service for an OAK-D Lite RGB-D camera, with optional voxel downsampling and PCL Region Growing RGB segmentation (see `lerobot_perception`)
 ---
 ## Installation
 
@@ -108,6 +109,57 @@ x=0.2 y=0.0 z=0.2 m in the `base` frame):
 ros2 action send_goal /move_to_pose lerobot_hardware_interfaces/action/MoveToPose \
   "{pose_matrix: [1,0,0,0.2, 0,1,0,0.0, 0,0,1,0.2, 0,0,0,1]}"
 ```
+
+- 📝 **TODO:** record a demo video
+
+---
+
+## Perception: OAK-D Lite Color Point Cloud
+
+**Summary:** `color_point_cloud_service_node` (C++, PCL) exposes a
+`get_color_point_cloud` service (`lerobot_perception_interfaces/srv/GetColorPointCloud`).
+On each request it builds an XYZRGB cloud from the OAK-D Lite's latest synchronized
+color+depth frame, always in the camera's own optical frame (it never transforms into a
+world/base frame - do that yourself downstream with tf2 if you need it there), then
+optionally:
+- voxel-grid downsamples it to a requested grid size in meters, and/or
+- segments it with PCL's Color-Based Region Growing (`pcl::RegionGrowingRGB`), returning
+  the cloud re-colored one solid color per cluster.
+
+**Prerequisites:**
+- Luxonis `depthai_ros_driver` installed and providing RGB/depth-aligned images (same
+  resolution, same optical frame) - see the version-compatibility caveat at the top of
+  `lerobot_perception/launch/oak_d_point_cloud_service.launch.py` before relying on the
+  default topic names in `lerobot_perception/config/oak_d_point_cloud_service_params.yaml`
+- `libpcl-all-dev` (PCL) and `libopencv-dev`/`ros-jazzy-cv-bridge`
+
+**Command:**  
+`ros2 launch lerobot_perception oak_d_point_cloud_service.launch.py`
+
+**Calling the service** (downsample to a 1cm grid, then segment):
+```bash
+ros2 service call /get_color_point_cloud lerobot_perception_interfaces/srv/GetColorPointCloud \
+  "{downsample: true, voxel_leaf_size_m: 0.01, segment: true}"
+```
+
+**Parallelized:**
+- The depth→XYZRGB pixel loop (`buildCloud()`) runs across rows via OpenMP, each thread
+  appending to its own `std::vector` (no fixed-size/organized/NaN-padded cloud) which are
+  concatenated into the final cloud once every thread finishes.
+- Concurrent `get_color_point_cloud` requests: the service uses a `Reentrant` callback
+  group and `main()` spins with a `MultiThreadedExecutor`, so independent requests that
+  arrive close together are handled on separate threads rather than queuing - safe because
+  `handleRequest()` only ever touches its own local copies and stack-allocated PCL objects.
+
+**Identified, not implemented:**
+- The rgb/depth `cv_bridge` conversions are independent of each other and could run
+  concurrently, though they're cheap relative to the pixel loop (the depth conversion in
+  particular is already a zero-copy view, not real work).
+- Voxel-grid downsampling's point→voxel-index assignment is embarrassingly parallel
+  (PCL also ships GPU-accelerated variants); the reduction into voxel centroids is not.
+- `RegionGrowingRGB`'s region-growing walk is inherently sequential (each seed's growth
+  order affects the result), so it's the least parallelizable of the four; only its KdTree
+  construction has an independent sub-step.
 
 - 📝 **TODO:** record a demo video
 
