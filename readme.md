@@ -11,6 +11,7 @@ LeRobot SO-ARM101 integrated into ROS 2 Jazzy.
 - ✅ MoveIt 2 motion planning
 - ✅ Task-space control of the physical arm (MoveIt 2 IK/planning + a Feetech STS3215 serial driver, see `lerobot_hardware`)
 - ✅ Color point cloud service for an OAK-D Lite RGB-D camera, with optional voxel downsampling and PCL Region Growing RGB segmentation (see `lerobot_perception`)
+- ✅ One-command bring-up of the physical arm and the camera together (see `lerobot_bringup`)
 ---
 ## Installation
 
@@ -162,6 +163,23 @@ ros2 service call /get_color_point_cloud lerobot_perception_interfaces/srv/GetCo
   construction has an independent sub-step.
 
 - 📝 **TODO:** record a demo video
+
+---
+
+## Bring-up: Arm + Camera Together
+
+**Summary:** `lerobot_bringup` launches the physical arm (`lerobot_hardware`) and the
+OAK-D Lite perception service (`lerobot_perception`) in one command. Either half can be
+turned off independently.
+
+**Command:**  
+`ros2 launch lerobot_bringup so101_bringup.launch.py`
+
+**Arm or camera only:**
+```bash
+ros2 launch lerobot_bringup so101_bringup.launch.py launch_camera:=false   # arm only
+ros2 launch lerobot_bringup so101_bringup.launch.py launch_arm:=false      # camera only
+```
 
 ---
 
